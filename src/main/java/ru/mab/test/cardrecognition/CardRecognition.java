@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.TreeSet;
 
 public class CardRecognition {
     private static final String IMAGE_EXTENSION = ".png";
@@ -17,19 +16,20 @@ public class CardRecognition {
     private static final int BINARIZATION_THRESHOLD = 120;
 
     public static void main(String[] args) throws IOException {
-        long totalTime = System.currentTimeMillis();
+        if (args.length < 1) {
+            System.err.println("Image folder path is not specified");
+            return;
+        }
 
+        Statistics statistics = new Statistics(args.length > 1 && args[1].equals("-s"));
         BufferedImage cardListMask = getImage("masks/cards.png");
         Map<String, BufferedImage> suitMasks = loadMasks("suit", "s", "h", "c", "d");
         Map<String, BufferedImage> seniorityMasks = loadMasks("sen", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A");
 
-        int errors = 0;
-        TreeSet<Long> timesPerImage = new TreeSet<>();
-        File directory = new File("D:\\dev\\projects\\testCodestyle\\src\\main\\resources\\imgs_marked");
+        File directory = new File(args[0]);
         File[] files = directory.listFiles();
-
         for (File imageFile : files) {
-            long timePerImage = System.currentTimeMillis();
+            statistics.startImageProcessing();
             BufferedImage testImage = ImageIO.read(imageFile);
             String result = "";
             for (int y = 0; y < cardListMask.getHeight() && result.length() == 0; y++) {
@@ -42,15 +42,10 @@ public class CardRecognition {
             }
 
             System.out.println(imageFile.getName() + " - " + result);
-
-            timesPerImage.add(System.currentTimeMillis() - timePerImage);
-            errors += imageFile.getName().replace(IMAGE_EXTENSION, "").equals(result) ? 0 : 1;
+            statistics.stopImageProcessing(imageFile.getName().replace(IMAGE_EXTENSION, ""), result);
         }
 
-        System.out.println("\n\ntotal time: " + (System.currentTimeMillis() - totalTime) + " millis" +
-                "\nMAX time taken to image:  " + timesPerImage.last() + " millis" +
-                "\nMIN time taken to image: " + timesPerImage.first() + " millis" +
-                "\npercentage of errors: " + ((double) errors / files.length) + "%");
+        statistics.print();
     }
 
     private static String matchByMask(int shiftX, int shiftY, BufferedImage cardImage, Map<String, BufferedImage> masks) {
@@ -73,7 +68,7 @@ public class CardRecognition {
     private static Map<String, BufferedImage> loadMasks(String prefix, String... suffixes) throws IOException {
         Map<String, BufferedImage> masks = new HashMap<>();
         for (String suffix : suffixes) {
-            masks.put(suffix, getImage("masks/" + prefix + "_" + suffix + ".png"));
+            masks.put(suffix, getImage("masks/" + prefix + "_" + suffix + IMAGE_EXTENSION));
         }
         return masks;
     }
