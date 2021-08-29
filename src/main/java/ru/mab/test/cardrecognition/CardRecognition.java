@@ -14,7 +14,12 @@ public class CardRecognition {
     private static final int WHITE_COLOR = 0xFFFFFFFF;
     private static final double MATCH_THRESHOLD = 0.6;
     private static final int BINARIZATION_THRESHOLD = 120;
+    private static final ClassLoader classLoader = CardRecognition.class.getClassLoader();
 
+    /**
+     * args[0] = &lt;путь до папки с изображениями&gt;<br/>
+     * args[1] = -s (не обязательный, включает вывод статистики выполнения)
+     */
     public static void main(String[] args) throws IOException {
         if (args.length < 1) {
             System.err.println("Image folder path is not specified");
@@ -22,16 +27,16 @@ public class CardRecognition {
         }
 
         Statistics statistics = new Statistics(args.length > 1 && args[1].equals("-s"));
-        BufferedImage cardListMask = getImage("masks/cards.png");
+        BufferedImage cardListMask = ImageIO.read(classLoader.getResourceAsStream("masks/cards.png"));
         Map<String, BufferedImage> suitMasks = loadMasks("suit", "s", "h", "c", "d");
         Map<String, BufferedImage> seniorityMasks = loadMasks("sen", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A");
+        File dir = new File(args[0]);
 
-        File directory = new File(args[0]);
-        File[] files = directory.listFiles();
-        for (File imageFile : files) {
+        for (File imageFile : dir.listFiles()) {
             statistics.startImageProcessing();
             BufferedImage testImage = ImageIO.read(imageFile);
             String result = "";
+
             for (int y = 0; y < cardListMask.getHeight() && result.length() == 0; y++) {
                 for (int x = 0; x < cardListMask.getWidth(); x++) {
                     if (cardListMask.getRGB(x, y) == WHITE_COLOR) {
@@ -53,6 +58,7 @@ public class CardRecognition {
         for (Map.Entry<String, BufferedImage> entry : masks.entrySet()) {
             BufferedImage mask = entry.getValue();
             int countInImage = 0;
+
             for (int y = 0; y < mask.getHeight(); y++) {
                 for (int x = 0; x < mask.getWidth(); x++) {
                     countInImage += binarize(mask.getRGB(x, y)) ^ binarize(cardImage.getRGB(x + shiftX, y + shiftY));
@@ -68,13 +74,9 @@ public class CardRecognition {
     private static Map<String, BufferedImage> loadMasks(String prefix, String... suffixes) throws IOException {
         Map<String, BufferedImage> masks = new HashMap<>();
         for (String suffix : suffixes) {
-            masks.put(suffix, getImage("masks/" + prefix + "_" + suffix + IMAGE_EXTENSION));
+            masks.put(suffix, ImageIO.read(classLoader.getResourceAsStream("masks/" + prefix + "_" + suffix + IMAGE_EXTENSION)));
         }
         return masks;
-    }
-
-    private static BufferedImage getImage(String s) throws IOException {
-        return ImageIO.read(CardRecognition.class.getClassLoader().getResourceAsStream(s));
     }
 
     private static int binarize(int rgb) {

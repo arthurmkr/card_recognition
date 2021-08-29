@@ -31,7 +31,7 @@ public class Statistics {
 
     public void print() {
         if (enabled) {
-            System.out.println("\n\ntotal time: " + (System.currentTimeMillis() - startTime) + " millis" +
+            System.out.println("\n\ntotal time (" + totalCount + "images): " + (System.currentTimeMillis() - startTime) + " millis" +
                     "\nMAX time taken to image: " + maxTime + " millis" +
                     "\nMIN time taken to image: " + minTime + " millis" +
                     "\npercentage of errors: " + ((double) errors / totalCount) + "%");

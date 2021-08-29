@@ -1,0 +1,1 @@
+java -jar card-recognition.jar %1 %2
