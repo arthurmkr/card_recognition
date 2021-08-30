@@ -13,7 +13,7 @@ public class CardRecognition {
     private static final String IMAGE_EXTENSION = ".png";
     private static final int WHITE_COLOR = 0xFFFFFFFF;
     private static final double MATCH_THRESHOLD = 0.6;
-    private static final int BINARIZATION_THRESHOLD = 120;
+    private static final int BINARIZATION_THRESHOLD = 106;
     private static final ClassLoader classLoader = CardRecognition.class.getClassLoader();
 
     /**
